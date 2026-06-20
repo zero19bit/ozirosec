@@ -1,0 +1,67 @@
+name: hackpath-prod
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: production
+    env_file:
+      - docker/env/backend.prod.example
+    volumes:
+      - app_storage:/var/www/html/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "php artisan --version >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - internal
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+      target: production
+      args:
+        VITE_API_BASE_URL: /api/v1
+        VITE_SANCTUM_CSRF_URL: /sanctum/csrf-cookie
+    ports:
+      - "8080:8080"
+    depends_on:
+      php:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health/live >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+      - public
+
+  postgres:
+    image: postgres:16-alpine
+    env_file:
+      - docker/env/postgres.prod.example
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+  app_storage:
+
+networks:
+  internal:
+    internal: true
+  public:

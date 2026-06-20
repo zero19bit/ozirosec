@@ -1,0 +1,69 @@
+name: Backend PostgreSQL Readiness
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-postgres.yml'
+  workflow_dispatch:
+
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: hackpath_test
+          POSTGRES_USER: hackpath_test
+          POSTGRES_PASSWORD: hackpath_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hackpath_test -d hackpath_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare application
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run PostgreSQL migration cycle and tests
+        env:
+          APP_ENV: testing
+          APP_DEBUG: true
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: hackpath_test
+          DB_USERNAME: hackpath_test
+          DB_PASSWORD: hackpath_test_password
+          CACHE_STORE: array
+          SESSION_DRIVER: database
+          QUEUE_CONNECTION: sync
+          MAIL_MAILER: array
+        run: |
+          php artisan config:clear
+          php artisan migrate:fresh --seed
+          php artisan migrate:rollback
+          php artisan migrate
+          php artisan test

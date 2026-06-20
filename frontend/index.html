@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-locale="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HackPath — Bug Bounty Learning Platform</title>
+    <meta name="description" content="The most comprehensive bug bounty and web security learning platform. Master SQL Injection, XSS, CSRF, and 20+ vulnerability categories with interactive labs." />
+    <meta property="og:title" content="HackPath — Bug Bounty Learning Platform" />
+    <meta property="og:description" content="Learn web security through interactive labs, cheat sheets, and real-world scenarios." />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <script>
+      (function () {
+        var supportedLocales = ['en', 'fa'];
+        var locale = 'en';
+
+        try {
+          var storedLocale = localStorage.getItem('hackpath-locale');
+          var persistedStore = localStorage.getItem('hackpath-store');
+          var storeLocale = persistedStore ? JSON.parse(persistedStore).state.language : null;
+          var candidate = supportedLocales.indexOf(storedLocale) > -1 ? storedLocale : storeLocale;
+
+          if (supportedLocales.indexOf(candidate) > -1) {
+            locale = candidate;
+          }
+        } catch (error) {
+          locale = 'en';
+        }
+
+        var direction = locale === 'fa' ? 'rtl' : 'ltr';
+        document.documentElement.lang = locale;
+        document.documentElement.dir = direction;
+        document.documentElement.dataset.locale = locale;
+        document.documentElement.classList.toggle('font-persian', locale === 'fa');
+      })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  </head>
+  <body dir="ltr" data-locale="en">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

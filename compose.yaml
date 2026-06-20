@@ -1,0 +1,95 @@
+name: hackpath
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: development
+    env_file:
+      - docker/env/backend.dev.example
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "php artisan --version >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html:ro
+      - ./docker/nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      php:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health/live >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+      - public
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: development
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+      VITE_SANCTUM_CSRF_URL: http://localhost:8000/sanctum/csrf-cookie
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      nginx:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5173 >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+    networks:
+      - public
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hackpath
+      POSTGRES_USER: hackpath
+      POSTGRES_PASSWORD: hackpath_dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hackpath -d hackpath"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+  backend_vendor:
+  backend_storage:
+  frontend_node_modules:
+
+networks:
+  internal:
+    internal: true
+  public:

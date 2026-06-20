@@ -1,0 +1,16 @@
+name: Repository Hygiene
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tracked-artifacts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if generated artifacts are tracked
+        shell: pwsh
+        run: ./scripts/check-tracked-artifacts.ps1
