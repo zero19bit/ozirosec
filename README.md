@@ -4,6 +4,8 @@ HackPath is a security-training lab platform for learning web vulnerabilities in
 
 Current status: active development. The repository includes production-hardening checks, tests, CI, and Docker configuration, but a real production deployment still requires secure environment values, HTTPS, a production database, SMTP, secret management, backups, and operational review.
 
+Write-up platform status: database/domain, initial APIs, signed internal-ingestion boundary, local n8n infrastructure, and inactive workflow templates are present. The platform is not yet production-ready: complete admin/public UI coverage, hardened external fetching, end-to-end fixture ingestion, and Write-up-specific security tests remain required. See `docs/WRITEUP_PLATFORM.md`.
+
 ## 1. Project Title and Status
 
 - Project name: `HackPath`

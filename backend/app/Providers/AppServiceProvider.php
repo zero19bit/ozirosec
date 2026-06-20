@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Models\Writeup;
 use App\Policies\UserAdministrationPolicy;
+use App\Policies\WriteupPolicy;
 use App\Support\ProductionConfigurationValidator;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -34,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->make(ProductionConfigurationValidator::class)->validate();
         $this->configureTrustedProxies();
         Gate::policy(User::class, UserAdministrationPolicy::class);
+        Gate::policy(Writeup::class, WriteupPolicy::class);
         $this->configureEmailVerificationUrls();
         $this->configureRateLimiters();
     }
@@ -118,6 +121,9 @@ class AppServiceProvider extends ServiceProvider
                 $this->limit('hackpath.expensive_read.actor', 30)->by($this->userKey($request)),
                 $this->limit('hackpath.expensive_read.ip', 60)->by($this->ipKey($request)),
             ];
+        });
+        RateLimiter::for('hackpath.writeup_ingestion', static function (Request $request): Limit {
+            return Limit::perMinute(60)->by('writeup-ingestion');
         });
     }
 

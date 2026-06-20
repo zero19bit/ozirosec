@@ -45,6 +45,7 @@ const navItems: NavItem[] = [
   },
   { labelKey: 'navLeaderboard', href: '/leaderboard', icon: <Trophy size={14} /> },
   { labelKey: 'navResources', href: '/resources', icon: <BookOpen size={14} /> },
+  { labelKey: 'navWriteups', href: '/writeups', icon: <BookOpen size={14} /> },
   { labelKey: 'navDashboard', href: '/dashboard', icon: <BarChart3 size={14} /> },
 ];
 

@@ -10,6 +10,7 @@ Development uses:
 - `nginx`: lightweight backend web server exposed on `http://localhost:8000`.
 - `postgres`: PostgreSQL on an internal Docker network only.
 - `frontend`: Vite dev server exposed on `http://localhost:5173`.
+- `n8n`: optional Community Edition automation editor at `http://localhost:5678`, with a dedicated PostgreSQL database/user and persistent `n8n_data` volume.
 
 Redis is intentionally not included because the current app does not require it. Mail is logged by default in development; add Mailpit only if you need browser-visible email testing.
 
@@ -29,6 +30,7 @@ Open:
 - Sanctum CSRF: `http://localhost:8000/sanctum/csrf-cookie`
 - Liveness: `http://localhost:8000/health/live`
 - Readiness: `http://localhost:8000/health/ready`
+- n8n: `http://localhost:5678` after copying `.env.example` to an untracked `.env` and setting its required secrets.
 
 The development environment file is `docker/env/backend.dev.example`. It contains local-only values. Do not reuse them in production.
 

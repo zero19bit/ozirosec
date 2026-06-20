@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsNotSuspended;
+use App\Http\Middleware\VerifyWriteupIngestionSignature;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'not.suspended' => EnsureUserIsNotSuspended::class,
+            'writeup.ingestion' => VerifyWriteupIngestionSignature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

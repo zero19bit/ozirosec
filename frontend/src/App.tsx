@@ -17,6 +17,8 @@ import { Dashboard } from './pages/Dashboard';
 import { Achievements } from './pages/Achievements';
 import { Leaderboard } from './pages/Leaderboard';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminWriteups } from './pages/admin/AdminWriteups';
+import { Writeups, WriteupDetail } from './pages/Writeups';
 import { Glossary } from './pages/Glossary';
 import { Resources } from './pages/Resources';
 import { LearningPaths } from './pages/LearningPaths';
@@ -66,6 +68,8 @@ export default function App() {
               <Route path="/labs/:slug" element={<LabDetail />} />
               <Route path="/vulnerabilities" element={<Vulnerabilities />} />
               <Route path="/vulnerabilities/:slug" element={<VulnerabilityDetail />} />
+              <Route path="/writeups" element={<Writeups />} />
+              <Route path="/writeups/:slug" element={<WriteupDetail />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/verify-email" element={<VerificationPending />} />
                 <Route element={<VerifiedRoute />}>
@@ -73,6 +77,7 @@ export default function App() {
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route element={<AdminRoute />}>
                     <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/writeups" element={<AdminWriteups />} />
                   </Route>
                 </Route>
               </Route>

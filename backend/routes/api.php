@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Internal\WriteupIngestionController;
 use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\EmailVerificationController;
 use App\Http\Controllers\Api\V1\LabVerificationController;
 use App\Http\Controllers\Api\V1\ProgressController;
+use App\Http\Controllers\Api\V1\WriteupController;
+use App\Models\Writeup;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')
@@ -57,10 +60,24 @@ Route::prefix('v1')
             ->middleware(['auth:sanctum', 'not.suspended', 'verified', 'throttle:hackpath.lab_submission'])
             ->name('labs.verify');
 
+        Route::get('/writeups', [WriteupController::class, 'index'])->name('writeups.index');
+        Route::get('/writeups/{slug}', [WriteupController::class, 'show'])->name('writeups.show');
+        Route::get('/vulnerabilities/{vulnerability}/writeups', [WriteupController::class, 'vulnerability'])->name('vulnerabilities.writeups');
+        Route::get('/labs/{lab}/writeups', [WriteupController::class, 'lab'])->name('labs.writeups');
+
         Route::prefix('admin')
             ->middleware(['auth:sanctum', 'not.suspended', 'verified', 'admin'])
             ->name('admin.')
             ->group(function (): void {
+                Route::get('/writeups/metrics', fn () => response()->json(['data' => ['total' => Writeup::count(), 'pending_review' => Writeup::where('status', 'pending_review')->count(), 'published' => Writeup::where('status', 'published')->count()]]))->name('writeups.metrics');
+                Route::get('/writeups', [WriteupController::class, 'adminIndex'])->name('writeups.index');
+                Route::post('/writeups', [WriteupController::class, 'store'])->name('writeups.store');
+                Route::get('/writeups/{writeup}', [WriteupController::class, 'adminShow'])->name('writeups.show');
+                Route::patch('/writeups/{writeup}', [WriteupController::class, 'update'])->name('writeups.update');
+                Route::delete('/writeups/{writeup}', [WriteupController::class, 'destroy'])->name('writeups.destroy');
+                Route::post('/writeups/{writeup}/{operation}', [WriteupController::class, 'transition'])->whereIn('operation', ['submit', 'approve', 'revision', 'reject', 'schedule', 'publish', 'archive'])->name('writeups.transition');
+                Route::match(['get', 'post'], '/writeup-sources', [WriteupController::class, 'sources'])->name('writeup-sources.index');
+                Route::get('/writeup-automation-runs', [WriteupController::class, 'automation'])->name('writeup-automation-runs.index');
                 Route::get('/metrics', [AdminController::class, 'metrics'])
                     ->middleware('throttle:hackpath.admin_read')
                     ->name('metrics');
@@ -76,3 +93,11 @@ Route::prefix('v1')
                     ->name('users.update');
             });
     });
+
+Route::prefix('internal')->middleware(['writeup.ingestion', 'throttle:hackpath.writeup_ingestion'])->group(function (): void {
+    Route::get('/writeup-sources', [WriteupIngestionController::class, 'sources']);
+    Route::post('/writeups/check-duplicate', [WriteupIngestionController::class, 'duplicate']);
+    Route::post('/writeups/ingest', [WriteupIngestionController::class, 'ingest']);
+    Route::post('/writeup-automation-runs', [WriteupIngestionController::class, 'createRun']);
+    Route::patch('/writeup-automation-runs/{run}', [WriteupIngestionController::class, 'updateRun']);
+});
