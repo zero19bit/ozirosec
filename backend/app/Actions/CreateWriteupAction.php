@@ -24,7 +24,7 @@ final class CreateWriteupAction
             throw ValidationException::withMessages(['canonical_url' => ['A matching write-up already exists.']]);
         }
 
-        return DB::transaction(function () use ($actor, $data, $method): Writeup {
+        return DB::transaction(function () use ($actor, $data, $method, $status): Writeup {
             $writeup = Writeup::query()->create([
                 'source_id' => $data['source_id'] ?? null, 'ingestion_method' => $method,
                 'original_title' => $data['original_title'], 'canonical_url' => $data['canonical_url'] ?? null,

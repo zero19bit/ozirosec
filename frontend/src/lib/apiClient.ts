@@ -4,11 +4,26 @@
   onUnauthorized?: () => void;
 };
 
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly code?: string,
+  ) {
+    super(message);
+    this.name = 'ApiRequestError';
+  }
+}
+
+const defaultBackendOrigin = typeof window === 'undefined'
+  ? 'http://localhost:8000'
+  : `${window.location.protocol}//${window.location.hostname}:8000`;
+
 export const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000/api/v1';
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? `${defaultBackendOrigin}/api/v1`;
 
 export const SANCTUM_CSRF_URL =
-  (import.meta.env.VITE_SANCTUM_CSRF_URL as string | undefined) ?? 'http://localhost:8000/sanctum/csrf-cookie';
+  (import.meta.env.VITE_SANCTUM_CSRF_URL as string | undefined) ?? `${defaultBackendOrigin}/sanctum/csrf-cookie`;
 
 function getCookie(name: string): string | null {
   const match = document.cookie
@@ -118,7 +133,11 @@ async function request<T>(path: string, options: ApiFetchOptions, csrfRetryUsed:
         ? payload.message
         : 'Request failed.');
 
-    throw new Error(message);
+    const code = payload && typeof payload === 'object' && 'code' in payload && typeof payload.code === 'string'
+      ? payload.code
+      : undefined;
+
+    throw new ApiRequestError(message, response.status, code);
   }
 
   return payload as T;

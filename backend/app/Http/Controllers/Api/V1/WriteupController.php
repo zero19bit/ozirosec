@@ -11,9 +11,12 @@ use App\Actions\DeleteWriteupAction;
 use App\Actions\PublishWriteupAction;
 use App\Actions\RejectWriteupAction;
 use App\Actions\RequestWriteupRevisionAction;
+use App\Actions\ReviewWriteupTranslationsAction;
 use App\Actions\ScheduleWriteupAction;
 use App\Actions\SubmitWriteupForReviewAction;
+use App\Actions\TransitionWriteupAction;
 use App\Actions\UpdateWriteupAction;
+use App\Enums\WriteupStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Writeups\CreateWriteupRequest;
 use App\Http\Requests\Api\V1\Writeups\UpdateWriteupRequest;
@@ -75,7 +78,7 @@ final class WriteupController extends Controller
             $q->where('ai_generated', true);
         }
 
-return AdminWriteupResource::collection($q->latest()->paginate(min(max((int) $request->query('per_page', 20), 1), 100)));
+        return AdminWriteupResource::collection($q->latest()->paginate(min(max((int) $request->query('per_page', 20), 1), 100)));
     }
 
     public function store(CreateWriteupRequest $request, CreateWriteupAction $action): AdminWriteupResource
@@ -99,12 +102,12 @@ return AdminWriteupResource::collection($q->latest()->paginate(min(max((int) $re
         return new AdminWriteupResource($action->handle($writeup, $request->validated()));
     }
 
-    public function transition(Request $request, Writeup $writeup, string $operation, SubmitWriteupForReviewAction $submit, ApproveWriteupAction $approve, RequestWriteupRevisionAction $revision, RejectWriteupAction $reject, ArchiveWriteupAction $archive, PublishWriteupAction $publish, ScheduleWriteupAction $schedule): AdminWriteupResource
+    public function transition(Request $request, Writeup $writeup, string $operation, SubmitWriteupForReviewAction $submit, ApproveWriteupAction $approve, RequestWriteupRevisionAction $revision, RejectWriteupAction $reject, ArchiveWriteupAction $archive, PublishWriteupAction $publish, ScheduleWriteupAction $schedule, ReviewWriteupTranslationsAction $reviewTranslations): AdminWriteupResource
     {
         Gate::authorize(in_array($operation, ['submit', 'revision']) ? 'update' : 'review', $writeup);
         $actor = $request->user();
         $result = match ($operation) {
-            'submit' => $submit->handle($writeup, $actor),'approve' => $approve->handle($writeup, $actor),'revision' => $revision->handle($writeup, $actor),'reject' => $reject->handle($writeup, $actor),'archive' => $archive->handle($writeup, $actor),'publish' => $publish->handle($writeup, $actor),'schedule' => $schedule->handle($writeup, $actor, now()->parse($request->validate(['scheduled_for' => ['required', 'date', 'after:now']])['scheduled_for'])),default => abort(404)
+            'submit' => $submit->handle($writeup, $actor),'approve' => $approve->handle($writeup, $actor),'revision' => $revision->handle($writeup, $actor),'reject' => $reject->handle($writeup, $actor),'archive' => $archive->handle($writeup, $actor),'publish' => $publish->handle($writeup, $actor),'schedule' => $schedule->handle($writeup, $actor, now()->parse($request->validate(['scheduled_for' => ['required', 'date', 'after:now']])['scheduled_for'])),'restore' => app(TransitionWriteupAction::class)->handle($writeup, $actor, WriteupStatus::Draft),'review-translations' => $reviewTranslations->handle($writeup, $actor),default => abort(404)
         };
 
         return new AdminWriteupResource($result);
@@ -146,7 +149,7 @@ return AdminWriteupResource::collection($q->latest()->paginate(min(max((int) $re
         } if ($r->boolean('featured')) {
             $q->featured();
         } if ($r->filled('tag')) {
-            $q->whereHas('tags',fn ($x) => $x->where('slug',$r->query('tag')));
+            $q->whereHas('tags', fn ($x) => $x->where('slug', $r->query('tag')));
         } $q->orderByDesc('published_at');
     }
 }

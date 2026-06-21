@@ -8,7 +8,7 @@
   type ReactNode,
 } from 'react';
 import { flushSync } from 'react-dom';
-import { apiFetch as requestApi, type ApiFetchOptions } from '../lib/apiClient';
+import { ApiRequestError, apiFetch as requestApi, type ApiFetchOptions } from '../lib/apiClient';
 import { useAppStore, type ServerProgressSnapshot } from '../store/useAppStore';
 
 export type AuthUser = {
@@ -77,12 +77,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const syncServerProgress = useCallback(async (): Promise<void> => {
-    const payload = await requestApi<{ data: ServerProgressSnapshot }>('/progress', {
-      method: 'GET',
-      onUnauthorized: clearSession,
-    });
+    try {
+      const payload = await requestApi<{ data: ServerProgressSnapshot }>('/progress', {
+        method: 'GET',
+        onUnauthorized: clearSession,
+      });
 
-    useAppStore.getState().syncServerProgress(payload.data);
+      useAppStore.getState().syncServerProgress(payload.data);
+    } catch (error) {
+      if (!(error instanceof ApiRequestError) || error.code !== 'EMAIL_NOT_VERIFIED') {
+        throw error;
+      }
+    }
   }, [clearSession]);
 
   const apiFetch = useCallback(async <T,>(path: string, options: ApiFetchOptions = {}): Promise<T> => {
@@ -103,8 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await syncServerProgress();
 
       return payload.data.user;
-    } catch {
-      clearSession();
+    } catch (error) {
+      if (!(error instanceof ApiRequestError) || error.status === 401) {
+        clearSession();
+      }
 
       return null;
     }

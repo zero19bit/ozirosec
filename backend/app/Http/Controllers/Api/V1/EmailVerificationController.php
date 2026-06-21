@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\UserResource;
+use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 final class EmailVerificationController extends Controller
 {
@@ -17,6 +20,7 @@ final class EmailVerificationController extends Controller
         return response()->json([
             'data' => [
                 'verified' => $request->user()->hasVerifiedEmail(),
+                'email_verified' => $request->user()->hasVerifiedEmail(),
                 'email' => $request->user()->email,
                 'email_verified_at' => $request->user()->email_verified_at?->toAtomString(),
             ],
@@ -34,7 +38,18 @@ final class EmailVerificationController extends Controller
             ]);
         }
 
-        $user->sendEmailVerificationNotification();
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (Throwable $exception) {
+            Log::warning('Email verification notification could not be sent.', [
+                'user_id' => $user->getKey(),
+                'exception' => $exception::class,
+            ]);
+
+            return response()->json([
+                'message' => 'Unable to send the verification email. Please try again later.',
+            ], 503);
+        }
 
         return response()->json([
             'message' => 'Verification link sent.',
@@ -42,33 +57,38 @@ final class EmailVerificationController extends Controller
         ]);
     }
 
-    public function verify(Request $request, int $id, string $hash): JsonResponse
+    public function verify(Request $request, int $id, string $hash): RedirectResponse
     {
-        $user = $request->user();
+        $user = User::query()->find($id);
 
-        abort_if((int) $user->getAuthIdentifier() !== $id, 403, 'Verification link does not belong to the authenticated user.');
-        abort_if(! hash_equals(sha1($user->getEmailForVerification()), $hash), 403, 'Invalid verification link.');
+        if (! $user || ! hash_equals(sha1($user->getEmailForVerification()), $hash)) {
+            return $this->redirectToError('invalid');
+        }
 
         if ($user->hasVerifiedEmail()) {
-            return response()->json([
-                'message' => 'Email address is already verified.',
-                'data' => [
-                    'verified' => true,
-                    'user' => UserResource::make($user),
-                ],
-            ]);
+            return $this->redirectToSuccess('already-verified');
         }
 
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
         }
 
-        return response()->json([
-            'message' => 'Email address verified.',
-            'data' => [
-                'verified' => true,
-                'user' => UserResource::make($user->fresh() ?? $user),
-            ],
-        ]);
+        return $this->redirectToSuccess();
+    }
+
+    private function redirectToSuccess(?string $status = null): RedirectResponse
+    {
+        $url = rtrim((string) config('hackpath.frontend_url'), '/').'/verify-email/success';
+
+        if ($status !== null) {
+            $url .= '?status='.rawurlencode($status);
+        }
+
+        return redirect()->away($url);
+    }
+
+    private function redirectToError(string $reason): RedirectResponse
+    {
+        return redirect()->away(rtrim((string) config('hackpath.frontend_url'), '/').'/verify-email/error?reason='.rawurlencode($reason));
     }
 }

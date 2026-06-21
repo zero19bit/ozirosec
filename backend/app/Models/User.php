@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Notifications\HackPathVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -71,5 +72,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function approvedWriteups(): HasMany
     {
         return $this->hasMany(Writeup::class, 'approved_by');
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new HackPathVerifyEmail);
     }
 }

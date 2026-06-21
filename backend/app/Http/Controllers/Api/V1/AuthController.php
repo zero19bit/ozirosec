@@ -10,6 +10,7 @@ use App\Http\Requests\Api\V1\ProfileUpdateRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Models\User;
 use App\Support\Usernames;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -53,7 +54,7 @@ final class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]));
 
-        $user->sendEmailVerificationNotification();
+        event(new Registered($user));
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
@@ -62,6 +63,7 @@ final class AuthController extends Controller
             'message' => 'Registration successful.',
             'data' => [
                 'user' => UserResource::make($user),
+                'email_verification_required' => true,
             ],
         ], 201);
     }

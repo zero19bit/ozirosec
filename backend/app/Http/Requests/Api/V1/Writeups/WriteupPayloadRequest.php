@@ -8,7 +8,7 @@ use App\Enums\WriteupTranslationStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-final class WriteupPayloadRequest extends FormRequest
+class WriteupPayloadRequest extends FormRequest
 {
     public function authorize(): bool
     {

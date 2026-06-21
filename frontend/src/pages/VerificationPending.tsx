@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { MailCheck, RefreshCw, Send } from 'lucide-react';
+import { LogOut, MailCheck, RefreshCw, Send } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAppStore } from '../store/useAppStore';
 
@@ -13,7 +13,7 @@ type VerificationStatusResponse = {
 };
 
 export function VerificationPending() {
-  const { user, isAuthenticated, isLoading, apiFetch, refreshUser } = useAuth();
+  const { user, isAuthenticated, isLoading, apiFetch, logout, refreshUser } = useAuth();
   const darkMode = useAppStore((state) => state.darkMode);
   const navigate = useNavigate();
   const [message, setMessage] = useState<string | null>(null);
@@ -112,6 +112,14 @@ export function VerificationPending() {
           >
             <RefreshCw size={18} />
             {isRefreshing ? 'Checking...' : 'I verified my email'}
+          </button>
+          <button
+            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 font-bold transition-colors ${darkMode ? 'border-slate-700 text-slate-200 hover:bg-slate-800' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
+            onClick={() => void logout()}
+            type="button"
+          >
+            <LogOut size={18} />
+            Log out
           </button>
         </div>
       </section>

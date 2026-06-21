@@ -36,7 +36,7 @@ Route::prefix('v1')
             ->name('user');
 
         Route::get('/progress', ProgressController::class)
-            ->middleware(['auth:sanctum', 'not.suspended'])
+            ->middleware(['auth:sanctum', 'not.suspended', 'verified'])
             ->name('progress');
 
         Route::patch('/user', [AuthController::class, 'updateProfile'])
@@ -52,7 +52,7 @@ Route::prefix('v1')
             ->name('verification.send');
 
         Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-            ->middleware(['auth:sanctum', 'not.suspended', 'signed', 'throttle:hackpath.email_resend'])
+            ->middleware(['signed', 'throttle:hackpath.email_verification'])
             ->whereNumber('id')
             ->name('verification.verify');
 
@@ -75,7 +75,7 @@ Route::prefix('v1')
                 Route::get('/writeups/{writeup}', [WriteupController::class, 'adminShow'])->name('writeups.show');
                 Route::patch('/writeups/{writeup}', [WriteupController::class, 'update'])->name('writeups.update');
                 Route::delete('/writeups/{writeup}', [WriteupController::class, 'destroy'])->name('writeups.destroy');
-                Route::post('/writeups/{writeup}/{operation}', [WriteupController::class, 'transition'])->whereIn('operation', ['submit', 'approve', 'revision', 'reject', 'schedule', 'publish', 'archive'])->name('writeups.transition');
+                Route::post('/writeups/{writeup}/{operation}', [WriteupController::class, 'transition'])->whereIn('operation', ['submit', 'approve', 'revision', 'reject', 'schedule', 'publish', 'archive', 'restore', 'review-translations'])->name('writeups.transition');
                 Route::match(['get', 'post'], '/writeup-sources', [WriteupController::class, 'sources'])->name('writeup-sources.index');
                 Route::get('/writeup-automation-runs', [WriteupController::class, 'automation'])->name('writeup-automation-runs.index');
                 Route::get('/metrics', [AdminController::class, 'metrics'])

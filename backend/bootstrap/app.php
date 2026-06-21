@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsNotSuspended;
 use App\Http\Middleware\VerifyWriteupIngestionSignature;
@@ -7,6 +8,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Session\TokenMismatchException;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -27,11 +29,24 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->throttleApi();
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'verified' => EnsureEmailIsVerified::class,
             'not.suspended' => EnsureUserIsNotSuspended::class,
             'writeup.ingestion' => VerifyWriteupIngestionSignature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(static function (InvalidSignatureException $exception) {
+            if (request()->route()?->getName() !== 'api.v1.verification.verify') {
+                return null;
+            }
+
+            $expires = request()->query('expires');
+            $reason = is_numeric($expires) && (int) $expires < now()->getTimestamp() ? 'expired' : 'invalid';
+            $url = rtrim((string) config('hackpath.frontend_url'), '/').'/verify-email/error?reason='.$reason;
+
+            return redirect()->away($url);
+        });
+
         $exceptions->render(static function (AuthenticationException $exception) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         });

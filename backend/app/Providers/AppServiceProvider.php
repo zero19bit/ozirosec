@@ -73,6 +73,10 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        RateLimiter::for('hackpath.email_verification', function (Request $request): Limit {
+            return $this->limit('hackpath.email_verification.ip', 30)->by($this->ipKey($request));
+        });
+
         // Password reset is reserved for future routes and mirrors login without revealing account existence.
         RateLimiter::for('hackpath.password_reset', function (Request $request): array {
             return [

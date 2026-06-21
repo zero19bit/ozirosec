@@ -347,15 +347,7 @@ DB_COLLATION=utf8mb4_unicode_ci
 
 ### Mail
 
-Local default:
-
-```text
-MAIL_MAILER=log
-MAIL_FROM_ADDRESS=hello@example.com
-MAIL_FROM_NAME="${APP_NAME}"
-```
-
-Production SMTP placeholder:
+SMTP configuration (use a provider-issued credential; never commit it):
 
 ```text
 MAIL_MAILER=smtp
@@ -598,15 +590,7 @@ Do not paste private cookies or session IDs into issues, screenshots, or logs.
 
 ## 16. Email Verification Setup
 
-Registration sends Laravel's standard email verification notification.
-
-Local default:
-
-```text
-MAIL_MAILER=log
-```
-
-With `MAIL_MAILER=log`, verification messages are written to Laravel logs instead of being delivered. For real delivery, configure SMTP as shown in the environment section.
+Registration sends a HackPath-branded Laravel verification notification through the configured SMTP provider. The link is signed and expires after 60 minutes.
 
 Important details:
 
@@ -615,7 +599,28 @@ Important details:
 - Status route: `/api/v1/email/verification`.
 - Resend route: `/api/v1/email/verification-notification`.
 - Frontend pending page: `/verify-email`.
+- Successful links redirect to `/verify-email/success`; invalid or expired links redirect to `/verify-email/error`.
 - Links expire according to Laravel auth verification configuration.
+
+Set `APP_URL` before generating a verification email. Do not edit the host in a signed link: it changes the signed URL and makes the link invalid.
+
+Local browser on the same computer:
+
+```text
+APP_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:5173
+```
+
+Testing from another device on the LAN (replace the address with the host machine's LAN address):
+
+```text
+APP_URL=http://192.168.1.103:8000
+FRONTEND_URL=http://192.168.1.103:5173
+CORS_ALLOWED_ORIGINS=http://192.168.1.103:5173
+SANCTUM_STATEFUL_DOMAINS=192.168.1.103:5173
+```
+
+For the LAN case, bind both development servers to an accessible interface, while keeping the explicit CORS/Sanctum origins above.
 
 If links are invalid or expired:
 
@@ -1203,11 +1208,9 @@ MAIL_FROM_ADDRESS
 APP_URL
 ```
 
-With `MAIL_MAILER=log`, inspect Laravel logs instead of expecting email delivery.
-
 ### Verification link invalid or expired
 
-Check `APP_URL`, clock skew, link expiration, and whether the logged-in user matches the verification link user. Request a new link from `/verify-email`.
+Check `APP_URL`, clock skew, and link expiration. Request a new link from `/verify-email`.
 
 ### Database connection refused
 

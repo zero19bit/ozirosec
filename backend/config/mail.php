@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'smtp'),
 
     /*
     |--------------------------------------------------------------------------
@@ -39,7 +39,13 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
+            // Symfony's SMTP transport accepts smtp/smtps schemes. Keep the
+            // conventional Laravel MAIL_ENCRYPTION values as a safe fallback.
+            'scheme' => env('MAIL_SCHEME') ?? match (env('MAIL_ENCRYPTION')) {
+                'tls' => 'smtp',
+                'ssl' => 'smtps',
+                default => null,
+            },
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', '127.0.0.1'),
             'port' => env('MAIL_PORT', 2525),
@@ -111,7 +117,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'no-reply@example.com'),
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 

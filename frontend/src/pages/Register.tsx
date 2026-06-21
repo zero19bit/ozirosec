@@ -41,7 +41,7 @@ export function Register() {
   const canSubmit = usernameValid && emailValid && passwordValid && !isSubmitting && !isLoading;
 
   if (!isLoading && isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/verify-email" replace />;
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -60,7 +60,7 @@ export function Register() {
         email,
         password,
       });
-      navigate('/dashboard', { replace: true });
+      navigate('/verify-email', { replace: true });
     } catch (registerError) {
       setError(registerError instanceof Error ? registerError.message : t('registerError'));
     } finally {

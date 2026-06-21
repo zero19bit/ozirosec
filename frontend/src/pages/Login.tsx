@@ -15,7 +15,7 @@ type LocationState = {
 export function Login() {
   const { t } = useTranslation();
   const { direction, locale } = useLanguage();
-  const { isAuthenticated, isLoading, login } = useAuth();
+  const { isAuthenticated, isLoading, login, user } = useAuth();
   const darkMode = useAppStore((state) => state.darkMode);
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,7 +28,7 @@ export function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isLoading && isAuthenticated) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={user?.email_verified_at ? redirectTo : '/verify-email'} replace />;
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -37,12 +37,12 @@ export function Login() {
     setIsSubmitting(true);
 
     try {
-      await login({
+      const authenticatedUser = await login({
         email,
         password,
         remember,
       });
-      navigate(redirectTo, { replace: true });
+      navigate(authenticatedUser.email_verified_at ? redirectTo : '/verify-email', { replace: true });
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : t('loginError'));
     } finally {

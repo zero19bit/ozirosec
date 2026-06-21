@@ -10,6 +10,8 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { VerificationPending } from './pages/VerificationPending';
+import { VerificationSuccess } from './pages/VerificationSuccess';
+import { VerificationError } from './pages/VerificationError';
 import { Labs } from './pages/Labs';
 import { LabDetail } from './pages/LabDetail';
 import { Vulnerabilities, VulnerabilityDetail } from './pages/Vulnerabilities';
@@ -18,6 +20,8 @@ import { Achievements } from './pages/Achievements';
 import { Leaderboard } from './pages/Leaderboard';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminWriteups } from './pages/admin/AdminWriteups';
+import { AdminWriteupCreate } from './pages/admin/AdminWriteupCreate';
+import { AdminWriteupDetail } from './pages/admin/AdminWriteupDetail';
 import { Writeups, WriteupDetail } from './pages/Writeups';
 import { Glossary } from './pages/Glossary';
 import { Resources } from './pages/Resources';
@@ -64,6 +68,8 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/verify-email/success" element={<VerificationSuccess />} />
+              <Route path="/verify-email/error" element={<VerificationError />} />
               <Route path="/labs" element={<Labs />} />
               <Route path="/labs/:slug" element={<LabDetail />} />
               <Route path="/vulnerabilities" element={<Vulnerabilities />} />
@@ -78,6 +84,8 @@ export default function App() {
                   <Route element={<AdminRoute />}>
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/writeups" element={<AdminWriteups />} />
+                    <Route path="/admin/writeups/create" element={<AdminWriteupCreate />} />
+                    <Route path="/admin/writeups/:id" element={<AdminWriteupDetail />} />
                   </Route>
                 </Route>
               </Route>
