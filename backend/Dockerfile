@@ -22,15 +22,21 @@ WORKDIR /var/www/html
 RUN apk add --no-cache \
         bash \
         icu-dev \
+        libxml2-dev \
         libzip-dev \
+        oniguruma-dev \
         postgresql-dev \
         shadow \
     && docker-php-ext-install \
+        dom \
         intl \
+        mbstring \
         opcache \
         pcntl \
         pdo_mysql \
         pdo_pgsql \
+        xml \
+        xmlwriter \
         zip \
     && apk del shadow
 
@@ -49,15 +55,21 @@ COPY --from=vendor-dev --chown=www-data:www-data /app/vendor ./vendor
 USER www-data
 
 FROM php-base AS production
-ENV APP_ENV=production
+
 COPY --from=vendor-prod --chown=www-data:www-data /app/vendor ./vendor
 COPY --chown=www-data:www-data backend ./
-RUN php artisan package:discover --ansi \
-    && php artisan event:cache \
+
+RUN APP_ENV=local HACKPATH_ENFORCE_PRODUCTION_CONFIG=false \
+        php artisan package:discover --ansi \
+    && APP_ENV=local HACKPATH_ENFORCE_PRODUCTION_CONFIG=false \
+        php artisan event:cache \
     && rm -rf \
         storage/logs/* \
         storage/framework/cache/data/* \
         storage/framework/sessions/* \
         storage/framework/testing/* \
         storage/framework/views/*
+
+ENV APP_ENV=production
+
 USER www-data

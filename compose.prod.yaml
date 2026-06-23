@@ -1,4 +1,4 @@
-name: hackpath-prod
+name: ozirosec-prod
 
 services:
   php:
@@ -6,18 +6,51 @@ services:
       context: .
       dockerfile: backend/Dockerfile
       target: production
+
     env_file:
       - docker/env/backend.prod.production
+
     volumes:
       - app_storage:/var/www/html/storage
+
     depends_on:
       postgres:
         condition: service_healthy
+
     healthcheck:
       test: ["CMD-SHELL", "php artisan --version >/dev/null 2>&1"]
       interval: 30s
       timeout: 10s
       retries: 5
+
+    restart: unless-stopped
+
+    networks:
+      - internal
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: production
+
+    command:
+      - php
+      - artisan
+      - schedule:work
+
+    env_file:
+      - docker/env/backend.prod.production
+
+    volumes:
+      - app_storage:/var/www/html/storage
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    restart: unless-stopped
+
     networks:
       - internal
 
@@ -29,31 +62,51 @@ services:
       args:
         VITE_API_BASE_URL: /api/v1
         VITE_SANCTUM_CSRF_URL: /sanctum/csrf-cookie
+
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
+
     depends_on:
       php:
         condition: service_healthy
+
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health/live >/dev/null || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:8080/health/live >/dev/null || exit 1"
+        ]
       interval: 30s
       timeout: 5s
       retries: 5
+
+    restart: unless-stopped
+
     networks:
       - internal
       - public
 
   postgres:
     image: postgres:16-alpine
+
     env_file:
       - docker/env/postgres.prod.production
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
+
+    restart: unless-stopped
+
     networks:
       - internal
 
@@ -64,4 +117,5 @@ volumes:
 networks:
   internal:
     internal: true
+
   public:
