@@ -7,7 +7,7 @@ services:
       dockerfile: backend/Dockerfile
       target: production
     env_file:
-      - docker/env/backend.prod.example
+      - docker/env/backend.prod.production
     volumes:
       - app_storage:/var/www/html/storage
     depends_on:
@@ -46,7 +46,7 @@ services:
   postgres:
     image: postgres:16-alpine
     env_file:
-      - docker/env/postgres.prod.example
+      - docker/env/postgres.prod.production
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

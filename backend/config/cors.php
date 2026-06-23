@@ -6,15 +6,13 @@ use App\Support\CorsOriginParser;
 
 $environment = (string) env('APP_ENV', 'local');
 $supportsCredentials = filter_var(env('CORS_SUPPORTS_CREDENTIALS', true), FILTER_VALIDATE_BOOL);
-$allowProductionLocalhost = filter_var(env('HACKPATH_ALLOW_LOCAL_CORS_IN_PRODUCTION', false), FILTER_VALIDATE_BOOL);
 $allowedOrigins = CorsOriginParser::fromCommaSeparated(
-    env('CORS_ALLOWED_ORIGINS', env('FRONTEND_URL', 'http://localhost:5173')),
+    env('CORS_ALLOWED_ORIGINS', env('FRONTEND_URL', $environment === 'production' ? '' : 'http://localhost:5173')),
     $environment,
-    $allowProductionLocalhost,
 );
 
-if ($supportsCredentials && in_array('*', $allowedOrigins, true)) {
-    throw new InvalidArgumentException('CORS_ALLOWED_ORIGINS cannot contain * when CORS_SUPPORTS_CREDENTIALS=true.');
+if (in_array('*', $allowedOrigins, true) && ($supportsCredentials || $environment === 'production')) {
+    throw new InvalidArgumentException('CORS_ALLOWED_ORIGINS cannot contain * for credentialed or production deployments.');
 }
 
 if ($environment === 'production' && $allowedOrigins === []) {

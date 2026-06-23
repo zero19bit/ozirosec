@@ -1,9 +1,11 @@
 ﻿import { Link } from 'react-router-dom';
-import { Shield, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { faLabel } from '../../utils/localizeContent';
 import { useAppStore } from '../../store/useAppStore';
+import oziroSecMarkDark from '../../assets/oziro-sec-mark-dark.png';
+import oziroSecMarkLight from '../../assets/oziro-sec-mark-light.png';
 
 export function Footer() {
   const { t } = useTranslation();
@@ -33,11 +35,11 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-600 rounded-lg flex items-center justify-center">
-                <Shield size={16} className="text-white" />
+              <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-slate-950">
+                <img src={darkMode ? oziroSecMarkDark : oziroSecMarkLight} alt="Oziro Sec" className="h-full w-full object-contain" />
               </div>
               <span className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                Hack<span className="text-green-400">Path</span>
+                Oziro <span className="text-green-400">Sec</span>
               </span>
             </Link>
             <p className={`text-sm leading-relaxed ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -101,7 +103,7 @@ export function Footer() {
             {t('footerMadeFor')} <Heart size={14} className="text-red-400 fill-red-400" /> {t('footerCommunity')} • {t('footerEducationalOnly')}
           </p>
           <div className="flex gap-6">
-            <span className={`text-sm ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>© 2025 HackPath</span>
+            <span className={`text-sm ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>© 2025 Oziro Sec</span>
             <span className="text-sm px-2 py-0.5 rounded text-xs font-medium bg-green-400/10 text-green-400">
               {t('footerEducationalUseOnly')}
             </span>

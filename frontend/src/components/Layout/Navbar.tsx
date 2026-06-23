@@ -6,6 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useDelayedDropdown } from '../../hooks/useDelayedDropdown';
 import { useAppStore } from '../../store/useAppStore';
 import { LanguageSwitcher } from '../LanguageSwitcher';
+import oziroSecMarkDark from '../../assets/oziro-sec-mark-dark.png';
+import oziroSecMarkLight from '../../assets/oziro-sec-mark-light.png';
 import {
   Shield, Menu, X, Moon, Sun, BookOpen, FlaskConical,
   Trophy, ChevronDown, Terminal, Globe, Star, BarChart3, Search,
@@ -212,14 +214,14 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <div className="relative">
-              <div className="w-9 h-9 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30">
-                <Shield size={18} className="text-white" />
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-slate-950 shadow-lg shadow-green-500/30">
+                <img src={darkMode ? oziroSecMarkDark : oziroSecMarkLight} alt="Oziro Sec" className="h-full w-full object-contain" />
               </div>
               <div className="absolute -top-1 -end-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
             </div>
             <div>
               <span className={`text-lg font-bold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                Hack<span className="text-green-400">Path</span>
+                Oziro <span className="text-green-400">Sec</span>
               </span>
               <div className={`text-xs leading-none ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
               {t('brandSubtitle')}

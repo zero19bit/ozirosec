@@ -147,7 +147,7 @@ final readonly class ProductionConfigurationValidator
 
         foreach ($origins as $origin) {
             if ($origin === '*') {
-                continue;
+                return 'cors allowed origins must not contain wildcards in production.';
             }
 
             if (! is_string($origin) || filter_var($origin, FILTER_VALIDATE_URL) === false) {
@@ -191,11 +191,13 @@ final readonly class ProductionConfigurationValidator
         $email = $this->config->get('hackpath.auth.admin.email');
         $password = $this->config->get('hackpath.auth.admin.password');
 
-        return is_string($name) && trim($name) !== ''
-            && is_string($email) && trim($email) !== ''
-            && is_string($password) && trim($password) !== ''
-            ? null
-            : 'hackpath.auth.admin bootstrap credentials are incomplete. Configure HACKPATH_ADMIN_NAME, HACKPATH_ADMIN_EMAIL, and HACKPATH_ADMIN_PASSWORD or disable bootstrap.';
+        if (! is_string($name) || trim($name) === ''
+            || ! is_string($email) || filter_var($email, FILTER_VALIDATE_EMAIL) === false
+            || ! is_string($password) || trim($password) === '') {
+            return 'hackpath.auth.admin bootstrap credentials are incomplete. Configure HACKPATH_ADMIN_NAME, HACKPATH_ADMIN_EMAIL, and HACKPATH_ADMIN_PASSWORD or disable bootstrap.';
+        }
+
+        return null;
     }
 
     private function validateAdminPassword(): ?string
@@ -214,9 +216,15 @@ final readonly class ProductionConfigurationValidator
             }
         }
 
-        return strlen($password) >= 16
-            ? null
-            : 'hackpath.auth.admin.password must be at least 16 characters in production.';
+        if (strlen($password) < 16
+            || preg_match('/[a-z]/', $password) !== 1
+            || preg_match('/[A-Z]/', $password) !== 1
+            || preg_match('/\d/', $password) !== 1
+            || preg_match('/[^A-Za-z0-9]/', $password) !== 1) {
+            return 'hackpath.auth.admin.password must be at least 16 characters and contain upper-case, lower-case, numeric, and symbol characters in production.';
+        }
+
+        return null;
     }
 
     private function validateActiveLabSecrets(): ?string
@@ -234,8 +242,8 @@ final readonly class ProductionConfigurationValidator
         }
 
         $secret = $this->config->get('vulnerabilities.flag_secret');
-        if (! is_string($secret) || trim($secret) === '') {
-            return 'vulnerabilities.flag_secret is required when active labs are configured. Set HACKPATH_FLAG_SECRET.';
+        if (! is_string($secret) || strlen(trim($secret)) < 32 || $this->isPlaceholder($secret)) {
+            return 'vulnerabilities.flag_secret must be a unique server-only value of at least 32 characters when active labs are configured. Set HACKPATH_FLAG_SECRET.';
         }
 
         foreach ($activeLabs as $key => $lab) {
@@ -303,5 +311,10 @@ final readonly class ProductionConfigurationValidator
     private function isLocalhost(string $host): bool
     {
         return in_array(strtolower($host), ['localhost', '127.0.0.1', '::1'], true);
+    }
+
+    private function isPlaceholder(string $value): bool
+    {
+        return preg_match('/(?:replace|change|example|placeholder|your[-_ ]?(?:secret|key|password))/i', $value) === 1;
     }
 }

@@ -6,10 +6,10 @@ use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
 use Laravel\Sanctum\Sanctum;
 
+$environment = (string) env('APP_ENV', 'local');
 $frontendOrigins = CorsOriginParser::fromCommaSeparated(
-    env('CORS_ALLOWED_ORIGINS', env('FRONTEND_URL', 'http://localhost:5173')),
-    (string) env('APP_ENV', 'local'),
-    filter_var(env('HACKPATH_ALLOW_LOCAL_CORS_IN_PRODUCTION', false), FILTER_VALIDATE_BOOL),
+    env('CORS_ALLOWED_ORIGINS', env('FRONTEND_URL', $environment === 'production' ? '' : 'http://localhost:5173')),
+    $environment,
 );
 
 $statefulDomains = array_map(static function (string $origin): string {
@@ -34,11 +34,13 @@ return [
 
     'stateful' => array_values(array_unique(array_filter(array_merge(
         $statefulDomains,
-        explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-            '%s%s',
-            'localhost,localhost:3000,localhost:5173,127.0.0.1,127.0.0.1:5173,127.0.0.1:8000,::1',
-            Sanctum::currentApplicationUrlWithPort(),
-        )))
+        explode(',', env('SANCTUM_STATEFUL_DOMAINS', $environment === 'production'
+            ? Sanctum::currentApplicationUrlWithPort()
+            : sprintf(
+                '%s%s',
+                'localhost,localhost:3000,localhost:5173,127.0.0.1,127.0.0.1:5173,127.0.0.1:8000,::1',
+                Sanctum::currentApplicationUrlWithPort(),
+            )))
     )))),
 
     /*

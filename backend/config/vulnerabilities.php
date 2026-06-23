@@ -1,7 +1,14 @@
 <?php
 
 declare(strict_types=1);
-$lab = static function (string $key, string $title, string $vulnerability, string $difficulty, int $points): array {
+
+$boolean = static fn (string $key, bool $default = false): bool => filter_var(
+    env($key, $default),
+    FILTER_VALIDATE_BOOL,
+    FILTER_NULL_ON_FAILURE,
+) ?? $default;
+
+$lab = static function (string $key, string $title, string $vulnerability, string $difficulty, int $points) use ($boolean): array {
     $envKey = strtoupper(str_replace('-', '_', $key));
 
     return [
@@ -9,7 +16,7 @@ $lab = static function (string $key, string $title, string $vulnerability, strin
         'title' => $title,
         'vulnerability' => $vulnerability,
         'difficulty' => $difficulty,
-        'active' => (bool) env("HACKPATH_LAB_{$envKey}_ACTIVE", false),
+        'active' => $boolean("HACKPATH_LAB_{$envKey}_ACTIVE"),
         'points' => env("HACKPATH_LAB_{$envKey}_POINTS", $points),
         'expected_digest' => env("HACKPATH_LAB_{$envKey}_DIGEST"),
     ];

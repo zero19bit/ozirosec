@@ -1,5 +1,12 @@
 <?php
 
+$environment = env('APP_ENV', 'production');
+$boolean = static fn (string $key, bool $default = false): bool => filter_var(
+    env($key, $default),
+    FILTER_VALIDATE_BOOL,
+    FILTER_NULL_ON_FAILURE,
+) ?? $default;
+
 return [
 
     /*
@@ -26,7 +33,7 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    'env' => $environment,
 
     /*
     |--------------------------------------------------------------------------
@@ -39,7 +46,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => $boolean('APP_DEBUG'),
 
     /*
     |--------------------------------------------------------------------------
@@ -52,7 +59,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', $environment === 'production' ? '' : 'http://localhost'),
 
     /*
     |--------------------------------------------------------------------------

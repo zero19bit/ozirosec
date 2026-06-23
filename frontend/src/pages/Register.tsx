@@ -1,10 +1,12 @@
 ﻿import { FormEvent, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Lock, Mail, ShieldCheck, User, XCircle } from 'lucide-react';
+import { CheckCircle2, Lock, Mail, User, XCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAppStore } from '../store/useAppStore';
+import oziroSecMarkDark from '../assets/oziro-sec-mark-dark.png';
+import oziroSecMarkLight from '../assets/oziro-sec-mark-light.png';
 
 type ValidationRule = {
   label: string;
@@ -97,8 +99,8 @@ export function Register() {
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_460px]">
         <section className="order-2 lg:order-1">
           <div className={`rounded-3xl border p-8 ${darkMode ? 'border-slate-800 bg-slate-900/70' : 'border-slate-200 bg-white'}`}>
-            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-500/15 text-green-400">
-              <ShieldCheck size={24} />
+            <div className="mb-6 flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-slate-950">
+              <img src={darkMode ? oziroSecMarkDark : oziroSecMarkLight} alt="Oziro Sec" className="h-full w-full object-contain" />
             </div>
             <h1 className={`mb-3 text-4xl font-black leading-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
               {t('registerTitle')}

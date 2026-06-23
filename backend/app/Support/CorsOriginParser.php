@@ -14,7 +14,6 @@ final readonly class CorsOriginParser
     public static function fromCommaSeparated(
         ?string $origins,
         string $environment,
-        bool $allowProductionLocalhost = false,
     ): array {
         $normalized = [];
 
@@ -25,7 +24,7 @@ final readonly class CorsOriginParser
                 continue;
             }
 
-            self::assertValidOrigin($origin, $environment, $allowProductionLocalhost);
+            self::assertValidOrigin($origin, $environment);
             $normalized[] = $origin;
         }
 
@@ -35,7 +34,6 @@ final readonly class CorsOriginParser
     private static function assertValidOrigin(
         string $origin,
         string $environment,
-        bool $allowProductionLocalhost,
     ): void {
         if ($origin === '*') {
             return;
@@ -71,7 +69,7 @@ final readonly class CorsOriginParser
             throw new InvalidArgumentException('CORS_ALLOWED_ORIGINS must use HTTPS in production.');
         }
 
-        if (! $allowProductionLocalhost && self::isLocalhost($host)) {
+        if (self::isLocalhost($host)) {
             throw new InvalidArgumentException('CORS_ALLOWED_ORIGINS must not include localhost in production.');
         }
     }
