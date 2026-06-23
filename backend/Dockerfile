@@ -13,8 +13,7 @@ RUN composer install \
     --no-interaction \
     --prefer-dist \
     --no-progress \
-    --no-scripts \
-    --classmap-authoritative
+    --no-scripts
 
 FROM php:8.2-fpm-alpine AS php-base
 WORKDIR /var/www/html
