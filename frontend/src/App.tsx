@@ -1,3 +1,4 @@
+import { Seo } from './components/Seo';
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useAppStore } from './store/useAppStore';
@@ -60,13 +61,14 @@ export default function App() {
   const { direction, locale } = useLanguage();
 
   return (
-    <div className={darkMode ? 'dark' : ''}>
+    <div className={`${darkMode ? 'dark' : ''} w-full max-w-full overflow-x-hidden`}>
       <div
-        className={`min-h-screen transition-colors ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}
+        className={`min-h-screen w-full max-w-full overflow-x-hidden transition-colors ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}
         dir={direction}
         lang={locale}
       >
         <BrowserRouter>
+          <Seo />
           <AuthProvider>
             <Navbar />
             <Suspense fallback={<main className="min-h-screen" aria-busy="true" />}>

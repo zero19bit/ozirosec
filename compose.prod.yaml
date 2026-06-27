@@ -27,6 +27,7 @@ services:
 
     networks:
       - internal
+      - egress
 
   scheduler:
     build:
@@ -53,6 +54,7 @@ services:
 
     networks:
       - internal
+      - egress
 
   nginx:
     build:
@@ -118,4 +120,8 @@ networks:
   internal:
     internal: true
 
+  egress:
+    driver: bridge
+
   public:
+    driver: bridge

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /verify-email
+Disallow: /api/
+Disallow: /sanctum/
+
+Sitemap: https://ozirosec.ir/sitemap.xml
