@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { ArticleReader } from '../components/ArticleReader';
 import { useLanguage } from '../i18n/LanguageContext';
 import { apiFetch } from '../lib/apiClient';
 import type { Paginated, Writeup } from '../lib/writeupApi';
+import { buildWriteupReaderText } from '../utils/articleReaderText';
 
 const copy = {
   en: {
@@ -353,15 +355,30 @@ export function WriteupDetail() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let active = true;
+
+    setItem(null);
+    setError('');
+
     apiFetch<{ data: Writeup }>(
       `writeups/${encodeURIComponent(slug)}?locale=${locale}`,
     )
-      .then((response) => setItem(response.data))
-      .catch((requestError) =>
-        setError(
-          requestError instanceof Error ? requestError.message : 'Not found.',
-        ),
-      );
+      .then((response) => {
+        if (active) {
+          setItem(response.data);
+        }
+      })
+      .catch((requestError) => {
+        if (active) {
+          setError(
+            requestError instanceof Error ? requestError.message : 'Not found.',
+          );
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, [slug, locale]);
 
   if (error) {
@@ -392,6 +409,8 @@ export function WriteupDetail() {
     'developer_lessons',
     'conclusion',
   ] as const;
+  const readerText = buildWriteupReaderText(translation, t.sections, t.findings);
+  const readerLanguage = translation?.locale === 'fa' ? 'fa-IR' : 'en-US';
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -422,6 +441,14 @@ export function WriteupDetail() {
           <span>{item.reading_time_minutes} min</span>
           <External href={item.canonical_url}>{t.source}</External>
         </div>
+
+        <ArticleReader
+          articleId={item.id}
+          className="mt-8"
+          language={readerLanguage}
+          text={readerText}
+          title={translation?.title}
+        />
 
         {translation?.short_summary && (
           <div className="mt-8 text-lg text-slate-200">
